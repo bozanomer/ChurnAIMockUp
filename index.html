@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AI-Powered Churn Risk Haritası</title>
+<title>Kayıp Risk Haritası</title>
 <style>
   :root{
     --text-primary:#16181C;
@@ -23,6 +23,7 @@
 
   *{ box-sizing:border-box; }
 
+  /* Sayfayı tam ekran yüksekliğine sabitledik ve dışarı taşmayı engelledik */
   html, body {
     height: 100%;
     margin: 0;
@@ -30,6 +31,7 @@
     overflow: hidden;
   }
 
+  /* Logoyu sağ üst köşeye sabitleyen ve diğer katmanların üstüne çıkaran stil */
   .header-row {
     position: relative;
     display: flex;
@@ -40,6 +42,7 @@
     flex-shrink: 0;
   }
 
+  /* Yeni Dinamik Logo Alanı Stili */
   .logo-container {
     display: flex;
     align-items: center;
@@ -48,7 +51,7 @@
     font-size: 14px;
     letter-spacing: 0.5px;
     color: var(--text-primary);
-    text-decoration: none;
+    user-select: none;
   }
 
   .logo-icon {
@@ -60,6 +63,7 @@
     font-weight: 900;
   }
 
+  /* Mobil cihazlarda logonun başlığı sıkıştırmaması için ufak bir esneklik */
   @media (max-width: 768px) {
     .header-row {
       flex-direction: column;
@@ -77,6 +81,7 @@
     align-items: center;
   }
 
+  /* Ana kapsayıcı dikeyde esnek (flex) yapıldı ve ekrana sığdırıldı */
   .wrap{
     width: 100%;
     max-width: 900px;
@@ -95,6 +100,7 @@
     flex: 1;
   }
 
+  /* Slider alanları dikey alanı daraltmak için küçültüldü */
   .filter-row {
     display:flex; 
     gap:16px; 
@@ -163,9 +169,10 @@
     height:12px;
   }
 
+  /* Grafiğin ekran yüksekliğine göre esnemesini sağlayan yeni container */
   .chart-container {
     flex: 1;
-    min-height: 0;
+    min-height: 0; /* Flexbox dikey taşma bug'ını önler */
     position: relative;
     width: 100%;
     display: flex;
@@ -191,10 +198,10 @@
 <div class="wrap">
 
   <div class="header-row">
-    <div style="width: 120px; display: @media (max-width: 768px) {none};"></div>
-    <h1>AI-Powered Churn Risk Haritası</h1>
+    <div style="width: 120px; display: @media (max-width: 768px) {none};"></div> <!-- Dengeli yerleşim için boşluk -->
+    <h1>Kayıp Risk Haritası</h1>
     
-    <!-- GitHub Pages Uyumlu Dinamik Logo -->
+    <!-- DÜZELTİLEN LOGO ALANI (Sıfır bağımlılık, GitHub Pages ile tam uyumlu) -->
     <div class="logo-container">
       <span class="logo-icon">dS</span>
       <span>dataSpecta</span>
@@ -204,18 +211,18 @@
   <div class="filter-row">  
     <div style="flex:1; min-width:200px;">
       <label style="font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
-        <span>Yapay Zeka Churn Eşiği (Probability)</span>
+        <span>Son etkileşimden bu yana geçen gün eşiği</span>
         <span style="display:flex; align-items:center; gap:4px;">
-          <input type="number" id="probInput" value="65" min="10" max="95" step="5"
+          <input type="number" id="dayInput" value="180" min="0" max="365" step="5"
             style="width:54px; font-weight:700; text-align:right; border:1px solid var(--border-strong); border-radius:6px; padding:2px 4px; font-size:11px; color:var(--text-primary); font-family:inherit;" />
-          <span style="font-weight:700; color:var(--text-primary);">%</span>
+          <span style="font-weight:700; color:var(--text-primary);">gün</span>
         </span>
       </label>
-      <input type="range" id="probSlider" min="10" max="95" step="5" value="65" style="width:100%; margin: 0;" />
+      <input type="range" id="daySlider" min="0" max="365" step="5" value="180" style="width:100%; margin: 0;" />
     </div>
     <div style="flex:1; min-width:200px;">
       <label style="font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
-        <span>Yıllık Değer (LTV) Sınırı</span>
+        <span>Yaşam boyu değer (CLV) eşiği</span>
         <span style="display:flex; align-items:center; gap:4px;">
           <input type="number" id="clvInput" value="350000" min="0" max="750000" step="10000"
             style="width:80px; font-weight:700; text-align:right; border:1px solid var(--border-strong); border-radius:6px; padding:2px 4px; font-size:11px; color:var(--text-primary); font-family:inherit;" />
@@ -228,121 +235,149 @@
 
   <div class="kpi-container">
     <div class="kpi-card" style="background:var(--bg-danger);">
-      <button class="detail-btn" onclick="openDetail('crit','Kritik Kayıp Riski')" title="Detayları listele">
+      <button class="detail-btn" onclick="openDetail('crit','Kritik kayıp riski')" title="Müşteri listesini gör">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
       </button>
-      <p style="font-size:11px; font-weight:800; margin:0 0 2px; color:var(--text-danger); text-transform:uppercase;">Kritik Risk</p>
-      <p style="font-size:20px; font-weight:700; margin:0; color:var(--text-danger);" id="critCount">-</p>
+      <p style="font-size:12px; font-weight:700; margin:0 0 2px; color:var(--text-danger);">Kritik kayıp riski</p>
+      <p style="font-size:20px; font-weight:500; margin:0; color:var(--text-danger);" id="critCount">-</p>
       <p class="kpi-amount" style="color:var(--text-danger);" id="critShare">-</p>
       <p class="kpi-trend" style="color:var(--text-danger);" id="critTrend">-</p>
       <p class="kpi-action" style="color:var(--text-danger);" id="critAction">-</p>
     </div>
     <div class="kpi-card" style="background:var(--bg-warning);">
-      <button class="detail-btn" onclick="openDetail('watch','Yüksek Değer - Takipte')" title="Detayları listele">
+      <button class="detail-btn" onclick="openDetail('watch','Değerli ama aktif')" title="Müşteri listesini gör">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
       </button>
-      <p style="font-size:11px; font-weight:800; margin:0 0 2px; color:var(--text-warning); text-transform:uppercase;">Değerli / Stabil</p>
-      <p style="font-size:20px; font-weight:700; margin:0; color:var(--text-warning);" id="watchCount">-</p>
+      <p style="font-size:12px; font-weight:700; margin:0 0 2px; color:var(--text-warning);">Değerli ama aktif</p>
+      <p style="font-size:20px; font-weight:500; margin:0; color:var(--text-warning);" id="watchCount">-</p>
       <p class="kpi-amount" style="color:var(--text-warning);" id="watchShare">-</p>
       <p class="kpi-trend" style="color:var(--text-warning);" id="watchTrend">-</p>
     </div>
     <div class="kpi-card" style="background:var(--surface-1);">
-      <button class="detail-btn" onclick="openDetail('dormant','Düşük Riskli İnaktif')" title="Detayları listele">
+      <button class="detail-btn" onclick="openDetail('dormant','Doğal kayıp')" title="Müşteri listesini gör">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
       </button>
-      <p style="font-size:11px; font-weight:800; margin:0 0 2px; color:var(--text-secondary); text-transform:uppercase;">Doğal Kayıp</p>
-      <p style="font-size:20px; font-weight:700; margin:0;" id="dormantCount">-</p>
+      <p style="font-size:12px; font-weight:700; margin:0 0 2px; color:var(--text-secondary);">Doğal kayıp</p>
+      <p style="font-size:20px; font-weight:500; margin:0;" id="dormantCount">-</p>
       <p class="kpi-amount" style="color:var(--text-secondary);" id="dormantShare">-</p>
       <p class="kpi-trend" style="color:var(--text-secondary);" id="dormantTrend">-</p>
     </div>
     <div class="kpi-card" style="background:var(--bg-success);">
-      <button class="detail-btn" onclick="openDetail('healthy','Sağlıklı Portföy')" title="Detayları listele">
+      <button class="detail-btn" onclick="openDetail('healthy','Sağlıklı müşteri')" title="Müşteri listesini gör">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
       </button>
-      <p style="font-size:11px; font-weight:800; margin:0 0 2px; color:var(--text-success); text-transform:uppercase;">Güvenli Alan</p>
-      <p style="font-size:20px; font-weight:700; margin:0; color:var(--text-success);" id="healthyCount">-</p>
+      <p style="font-size:12px; font-weight:700; margin:0 0 2px; color:var(--text-success);">Sağlıklı müşteri</p>
+      <p style="font-size:20px; font-weight:500; margin:0; color:var(--text-success);" id="healthyCount">-</p>
       <p class="kpi-amount" style="color:var(--text-success);" id="healthyShare">-</p>
       <p class="kpi-trend" style="color:var(--text-success);" id="healthyTrend">-</p>
     </div>
   </div>
 
+  <!-- Grafik Alanı: Başlıklar güvenli koordinatlara taşındı ve z-index hiyerarşisi düzeltildi -->
   <div class="chart-container">
     <svg id="plot" viewBox="0 0 700 430" style="overflow:visible;">
+      <!-- Kılavuz Çizgileri -->
       <line x1="60" y1="20" x2="60" y2="360" stroke="var(--border-strong)" stroke-width="1"/>
       <line x1="60" y1="360" x2="680" y2="360" stroke="var(--border-strong)" stroke-width="1"/>
       <line id="vLine" x1="60" y1="20" x2="60" y2="360" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4 3"/>
       <line id="hLine" x1="60" y1="360" x2="680" y2="360" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4 3"/>
       
+      <!-- Grafik Veri Noktaları (Buraya üretilecek) -->
       <g id="points"></g>
 
-      <!-- Çeyrek Başlıkları -->
+      <!-- Çeyrek Başlıkları (Noktaların her zaman üstünde kalması için alta eklendi ve konumları dışa kaydırıldı) -->
+      <!-- Üst Başlıklar (y koordinatları 35'ten 15'e çekilerek grafik dışına taşındı) -->
       <rect x="130" y="2" width="170" height="20" fill="var(--page-bg)" rx="4" opacity="0.9"/>
-      <text x="215" y="16" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-warning)">Değerli / Risk Altında</text>
+      <text x="215" y="16" text-anchor="middle" font-size="12" font-weight="800" fill="var(--text-warning)">Değerli ama aktif</text>
       
       <rect x="440" y="2" width="170" height="20" fill="var(--page-bg)" rx="4" opacity="0.9"/>
-      <text x="525" y="16" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-danger)">Kritik Risk / Müdahale Lazım</text>
+      <text x="525" y="16" text-anchor="middle" font-size="12" font-weight="800" fill="var(--text-danger)">Kritik kayıp riski</text>
       
+      <!-- Alt Başlıklar (Grafik çizgisinin güvenle altına alındı) -->
       <rect x="130" y="365" width="170" height="20" fill="var(--page-bg)" rx="4" opacity="0.9"/>
-      <text x="215" y="380" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-success)">Sağlıklı Segment</text>
+      <text x="215" y="380" text-anchor="middle" font-size="12" font-weight="800" fill="var(--text-success)">Sağlıklı müşteri</text>
       
       <rect x="440" y="365" width="170" height="20" fill="var(--page-bg)" rx="4" opacity="0.9"/>
-      <text x="525" y="380" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-secondary)">Doğal Kayıp / Pasif</text>
+      <text x="525" y="380" text-anchor="middle" font-size="12" font-weight="800" fill="var(--text-secondary)">Doğal kayıp</text>
       
       <!-- Eksen Etiketleri -->
-      <text x="370" y="415" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text-secondary)">Yapay Zeka Churn Olasılığı (Churn Probability %)</text>
-      <text x="20" y="190" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text-secondary)" transform="rotate(-90 20 190)">Yaşam Boyu Değer (LTV ₺)</text>
+      <text x="370" y="415" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text-secondary)">Son etkileşimden bu yana geçen gün</text>
+      <text x="20" y="190" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text-secondary)" transform="rotate(-90 20 190)">Yaşam boyu değer (₺)</text>
     </svg>
   </div>
 
-  <p class="footer-text">dataSpecta Predictive Engine · Mockup v2.0 (AI integrated dataset)</p>
+  <p class="footer-text">dataSpecta BI · Mockup taslağı — örnek veri ile üretilmiştir</p>
 
 </div>
 
 <script>
 (function(){
   var W = 700, H = 420, padL = 60, padB = 60, padT = 20, padR = 20;
-  var xMax = 100, yMax = 750000;
+  var xMax = 365, yMax = 750000;
   var plotW = W - padL - padR, plotH = H - padT - padB;
 
   function xPix(v){ return padL + (v/xMax)*plotW; }
   function yPix(v){ return (H - padB) - (v/yMax)*plotH; }
 
-  var firstNames = ["Ahmet","Mehmet","Ayşe","Fatma","Mustafa","Emine","Ali","Hatice","Hüseyin","Zeynep","İbrahim","Elif","Hasan","Meryem","İsmail","Özlem","Murat","Sevgi","Kemal","Derya"];
-  var lastNames = ["Yılmaz","Kaya","Demir","Şahin","Çelik","Yıldız","Yıldırım","Öztürk","Aydın","Özdemir"];
-  var branches = ["İstanbul","Ankara","İzmir","Bursa","Antalya"];
-  var reasons = ["Destek biletlerinin geç çözülmesi", "Yüksek fiyatlama şikayeti", "Rakip firma etkileşimi", "Düşük platform kullanımı", "Son fatura itirazı", "Müşteri temsilcisi değişikliği"];
+  var firstNames = ["Ahmet","Mehmet","Ayşe","Fatma","Mustafa","Emine","Ali","Hatice","Hüseyin","Zeynep","İbrahim","Elif","Hasan","Meryem","İsmail","Özlem","Murat","Sevgi","Kemal","Derya","Burak","Gül","Serkan","Aylin","Volkan","Ebru","Onur","Pınar","Cem","Nazlı"];
+  var lastNames = ["Yılmaz","Kaya","Demir","Şahin","Çelik","Yıldız","Yıldırım","Öztürk","Aydın","Özdemir","Arslan","Doğan","Kılıç","Aslan","Çetin","Kara","Koç","Kurt","Özkan","Şimşek"];
+  var branches = ["İstanbul","Ankara","İzmir","Bursa","Antalya","Adana","Konya","Gaziantep","Kayseri","Mersin"];
+
+  function trToAscii(s){
+    var map = {'ç':'c','Ç':'C','ğ':'g','Ğ':'G','ı':'i','İ':'I','ö':'o','Ö':'O','ş':'s','Ş':'S','ü':'u','Ü':'U'};
+    return s.replace(/[çÇğĞıİöÖşŞüÜ]/g, function(ch){ return map[ch]; }).toLowerCase();
+  }
 
   function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-  var points = [];
-  var n = 180;
-  for (var i=0;i<n;i++){
-    var prob = Math.pow(Math.random(), 1.2) * 100;
-    var ltv = Math.min(yMax, 10000 + Math.random()*(yMax*0.9));
-    var size = 4 + Math.random()*4;
+  function randomPhone(){
+    var n = function(d){ var s=''; for(var i=0;i<d;i++) s+=Math.floor(Math.random()*10); return s; };
+    return '05' + n(2) + ' ' + n(3) + ' ' + n(2) + ' ' + n(2);
+  }
 
-    var prevProb = Math.max(0, Math.min(100, prob + (Math.random() - 0.5) * 15));
-    var prevLtv = ltv * (0.95 + Math.random()*0.1);
+  function formatDate(d){
+    return d.toLocaleDateString('tr-TR', {year:'numeric', month:'2-digit', day:'2-digit'});
+  }
+
+  var today = new Date();
+  var statusPool = ['Atanmadı','Atanmadı','Aranıyor','Teklif Sunuldu','Kapatıldı'];
+
+  var points = [];
+  var n = 260;
+  for (var i=0;i<n;i++){
+    var day = Math.pow(Math.random(),1.15)*xMax;
+    var base = 4000 + Math.random()*(yMax*0.85);
+    var clv = Math.min(yMax, base * (0.6 + Math.random()*0.6));
+    var size = 3 + Math.random()*5;
+
+    var prevDay = clamp(day - (20 + Math.random()*20), 0, xMax);
+    var prevClv = clv * (0.88 + Math.random()*0.14);
 
     var fn = pick(firstNames), ln = pick(lastNames);
-    var tenure = Math.floor(50 + Math.random()*1200) + " gün";
+    var joinDate = new Date(today.getTime() - Math.floor(Math.random()*6*365)*86400000);
+    var lastActionDate = new Date(today.getTime() - Math.floor(day)*86400000);
+    var segment = clv >= 400000 ? 'VIP' : (clv >= 120000 ? 'Standart' : 'Başlangıç');
+    var status = pick(statusPool);
 
     points.push({
-      prob: prob, ltv: ltv, r: size, prevProb: prevProb, prevLtv: prevLtv,
-      id: 'ID-' + (2400+i),
+      day:day, clv:clv, r:size, prevDay:prevDay, prevClv:prevClv,
+      id: 'MST-' + (1000+i),
       ad: fn + ' ' + ln,
-      tenure: tenure,
+      email: trToAscii(fn) + '.' + trToAscii(ln) + (i) + '@ornekmail.com',
+      telefon: randomPhone(),
+      girisTarihi: formatDate(joinDate),
+      sonIslemTarihi: formatDate(lastActionDate),
+      segment: segment,
       sube: pick(branches),
-      status: pick(['Boşta','Öncelikli Aranacak','Teklif Aşamasında','Çözüldü']),
-      reason: pick(reasons)
+      status: status
     });
   }
 
   var svgPoints = document.getElementById('points');
   points.forEach(function(p){
     var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    c.setAttribute('cx', xPix(p.prob));
-    c.setAttribute('cy', yPix(p.ltv));
+    c.setAttribute('cx', xPix(p.day));
+    c.setAttribute('cy', yPix(p.clv));
     c.setAttribute('r', p.r);
     c.setAttribute('fill-opacity', '0.75');
     svgPoints.appendChild(c);
@@ -356,14 +391,14 @@
     healthy: '#1D9E75'
   };
 
-  var probSlider = document.getElementById('probSlider');
+  var daySlider = document.getElementById('daySlider');
   var clvSlider = document.getElementById('clvSlider');
-  var probInput = document.getElementById('probInput');
+  var dayInput = document.getElementById('dayInput');
   var clvInput = document.getElementById('clvInput');
   var vLine = document.getElementById('vLine');
   var hLine = document.getElementById('hLine');
 
-  var probT = parseInt(probSlider.value, 10);
+  var dayT = parseInt(daySlider.value, 10);
   var clvT = parseInt(clvSlider.value, 10);
 
   function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
@@ -375,12 +410,12 @@
   }
 
   function update(){
-    probInput.value = probT;
+    dayInput.value = dayT;
     clvInput.value = clvT;
-    probSlider.value = probT;
+    daySlider.value = dayT;
     clvSlider.value = clvT;
 
-    var xPixT = xPix(probT);
+    var xPixT = xPix(dayT);
     var yPixT = yPix(clvT);
     vLine.setAttribute('x1', xPixT); vLine.setAttribute('x2', xPixT);
     hLine.setAttribute('y1', yPixT); hLine.setAttribute('y2', yPixT);
@@ -388,69 +423,88 @@
     var counts = {crit:0, watch:0, dormant:0, healthy:0};
     var clvSums = {crit:0, watch:0, dormant:0, healthy:0};
     var prevCounts = {crit:0, watch:0, dormant:0, healthy:0};
-    var unassignedCrit = 0;
+    var critUnassigned = 0;
     var totalClv = 0;
 
-    function categorize(prob, ltv){
-      var highProb = prob >= probT;
-      var highLtv = ltv >= clvT;
-      if (highProb && highLtv) return 'crit';
-      if (!highProb && highLtv) return 'watch';
-      if (highProb && !highLtv) return 'dormant';
+    function categorize(day, clv){
+      var highDay = day >= dayT;
+      var highClv = clv >= clvT;
+      if (highDay && highClv) return 'crit';
+      if (!highDay && highClv) return 'watch';
+      if (highDay && !highClv) return 'dormant';
       return 'healthy';
     }
 
     points.forEach(function(p){
-      var key = categorize(p.prob, p.ltv);
-      var prevKey = categorize(p.prevProb, p.prevLtv);
+      var key = categorize(p.day, p.clv);
+      var prevKey = categorize(p.prevDay, p.prevClv);
       p.cat = key;
       p.el.setAttribute('fill', colors[key]);
       counts[key]++;
-      clvSums[key] += p.ltv;
-      totalClv += p.ltv;
+      clvSums[key]+=p.clv;
+      totalClv += p.clv;
       prevCounts[prevKey]++;
-      if (key === 'crit' && p.status === 'Boşta') unassignedCrit++;
+      if (key === 'crit' && p.status === 'Atanmadı') critUnassigned++;
     });
 
     function pct(v){ return totalClv ? (100*v/totalClv).toFixed(1)+'%' : '0%'; }
 
     function trendHtml(key, goodDirection){
       var delta = counts[key] - prevCounts[key];
-      if (delta === 0) return 'Değişim yok';
+      if (delta === 0) return '— geçen aya göre değişim yok';
       var up = delta > 0;
+      var arrow = up ? '▲' : '▼';
       var isGood = up ? goodDirection === 'up' : goodDirection === 'down';
-      return (up ? '▲ ' : '▼ ') + Math.abs(delta) + (isGood ? ' (Pozitif trend)' : ' (Artış yönlü risk)');
+      var word = isGood ? 'iyi yönde' : 'kötü yönde';
+      return arrow + ' ' + (up ? '+' : '') + delta + ' geçen aya göre (' + word + ')';
     }
 
-    document.getElementById('critCount').textContent = counts.crit + " Müşteri";
-    document.getElementById('critShare').textContent = formatCurrencyShort(clvSums.crit) + " LTV (" + pct(clvSums.crit) + ")";
+    document.getElementById('critCount').textContent = counts.crit;
+    document.getElementById('critShare').textContent = formatCurrencyShort(clvSums.crit) + ' toplam CLV · ' + pct(clvSums.crit) + ' payı';
     document.getElementById('critTrend').textContent = trendHtml('crit', 'down');
-    document.getElementById('critAction').textContent = unassignedCrit + ' boşta/aksiyonsuz';
+    document.getElementById('critAction').textContent = critUnassigned + ' aksiyon alınmamış';
 
-    document.getElementById('watchCount').textContent = counts.watch + " Müşteri";
-    document.getElementById('watchShare').textContent = formatCurrencyShort(clvSums.watch) + " LTV (" + pct(clvSums.watch) + ")";
+    document.getElementById('watchCount').textContent = counts.watch;
+    document.getElementById('watchShare').textContent = formatCurrencyShort(clvSums.watch) + ' toplam CLV · ' + pct(clvSums.watch) + ' payı';
     document.getElementById('watchTrend').textContent = trendHtml('watch', 'down');
 
-    document.getElementById('dormantCount').textContent = counts.dormant + " Müşteri";
-    document.getElementById('dormantShare').textContent = formatCurrencyShort(clvSums.dormant) + " LTV (" + pct(clvSums.dormant) + ")";
+    document.getElementById('dormantCount').textContent = counts.dormant;
+    document.getElementById('dormantShare').textContent = formatCurrencyShort(clvSums.dormant) + ' toplam CLV · ' + pct(clvSums.dormant) + ' payı';
     document.getElementById('dormantTrend').textContent = trendHtml('dormant', 'down');
 
-    document.getElementById('healthyCount').textContent = counts.healthy + " Müşteri";
-    document.getElementById('healthyShare').textContent = formatCurrencyShort(clvSums.healthy) + " LTV (" + pct(clvSums.healthy) + ")";
+    document.getElementById('healthyCount').textContent = counts.healthy;
+    document.getElementById('healthyShare').textContent = formatCurrencyShort(clvSums.healthy) + ' toplam CLV · ' + pct(clvSums.healthy) + ' payı';
     document.getElementById('healthyTrend').textContent = trendHtml('healthy', 'up');
   }
 
-  probSlider.addEventListener('input', function(){ probT = parseInt(probSlider.value, 10); update(); });
-  clvSlider.addEventListener('input', function(){ clvT = parseInt(clvSlider.value, 10); update(); });
-  probInput.addEventListener('input', function(){ var v = parseInt(probInput.value, 10); if(!isNaN(v)){ probT = clamp(v, 0, xMax); update(); } });
-  clvInput.addEventListener('input', function(){ var v = parseInt(clvInput.value, 10); if(!isNaN(v)){ clvT = clamp(v, 0, yMax); update(); } });
+  daySlider.addEventListener('input', function(){
+    dayT = parseInt(daySlider.value, 10);
+    update();
+  });
+  clvSlider.addEventListener('input', function(){
+    clvT = parseInt(clvSlider.value, 10);
+    update();
+  });
+  dayInput.addEventListener('input', function(){
+    var v = parseInt(dayInput.value, 10);
+    if (isNaN(v)) return;
+    dayT = clamp(v, 0, xMax);
+    update();
+  });
+  clvInput.addEventListener('input', function(){
+    var v = parseInt(clvInput.value, 10);
+    if (isNaN(v)) return;
+    clvT = clamp(v, 0, yMax);
+    update();
+  });
 
-  // GITHUB PAGES İÇİN GÖRECELİ YOL (RELATIVE PATH) DÜZELTMESİ
   window.openDetail = function(catKey, label){
     var filtered = points.filter(function(p){ return p.cat === catKey; }).map(function(p){
       return {
-        id: p.id, ad: p.ad, tenure: p.tenure, sube: p.sube, durum: p.status,
-        clv: Math.round(p.ltv), prob: Math.round(p.prob), reason: p.reason
+        id: p.id, ad: p.ad, email: p.email, telefon: p.telefon,
+        girisTarihi: p.girisTarihi, sonIslemTarihi: p.sonIslemTarihi,
+        segment: p.segment, sube: p.sube, durum: p.status,
+        clv: Math.round(p.clv), gun: Math.round(p.day)
       };
     });
     sessionStorage.setItem('churnDetayList', JSON.stringify(filtered));
