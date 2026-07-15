@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Churn Detay Analizi</title>
+<style>
+  :root {
+    --text-primary: #16181C;
+    --text-secondary: #6B6B6B;
+    --text-muted: #9A9A9A;
+    --border-strong: #D8D4C8;
+    --surface-1: #F1EFE8;
+    --page-bg: #FFFFFF;
+    --radius: 10px;
+    
+    --color-crit: #E24B4A;
+    --color-watch: #EF9F27;
+    --color-dormant: #B8B4A4;
+    --color-healthy: #1D9E75;
+    
+    --bg-crit: #FCEBEB;
+    --bg-watch: #FAEEDA;
+    --bg-dormant: #F1EFE8;
+    --bg-healthy: #E1F5EE;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: var(--page-bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 1100px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--surface-1);
+    padding-bottom: 1rem;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+  }
+
+  .search-input:focus {
+    border-color: var(--text-primary);
+  }
+
+  .table-wrapper {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  th {
+    background: var(--surface-1);
+    color: var(--text-secondary);
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--surface-1);
+    color: var(--text-primary);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background-color: #faf9f6;
+  }
+
+  .cell-id { font-family: monospace; font-weight: 600; color: var(--text-secondary); }
+  .cell-name { font-weight: 600; }
+  .cell-number { text-align: right; font-weight: 700; }
+  .cell-ai-score { font-weight: 800; text-align: center; }
+  
+  .status-pill {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .ai-driver-tag {
+    background: #f0f0f0;
+    color: #4a4a4a;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    border: 1px dashed var(--border-strong);
+    display: inline-block;
+  }
+
+  .btn-close {
+    background: var(--surface-1);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 12px;
+    transition: background 0.2s;
+  }
+  .btn-close:hover {
+    background: var(--border-strong);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  
+  <div class="header">
+    <div>
+      <span id="segmentBadge" class="badge">Yükleniyor...</span>
+      <h1 id="titleLabel" style="margin-top: 0.5rem;">AI Segment Detay Listesi</h1>
+    </div>
+    <button class="btn-close" onclick="window.close()">Pencereyi Kapat</button>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="searchInput" class="search-input" placeholder="Müşteri Adı, ID veya Risk Nedeni ile akıllı filtreleme..." oninput="filterTable()" />
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Müşteri ID</th>
+          <th>Ad Soyad</th>
+          <th>Müşteri Yaşı (Tenure)</th>
+          <th>Şube</th>
+          <th style="text-align: center;">AI Risk Skoru</th>
+          <th>Baskın Risk Faktörü (AI SHAP Driver)</th>
+          <th style="text-align: right;">LTV (Yıllık Değer)</th>
+          <th>İşlem Durumu</th>
+        </tr>
+      </thead>
+      <tbody id="customerTableBody">
+        <!-- Dinamik JS verisi -->
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  let rawData = [];
+
+  const themeMap = {
+    "Kritik Kayıp Riski": { bg: "var(--bg-danger)", text: "var(--color-crit)" },
+    "Yüksek Değer - Takipte": { bg: "var(--bg-warning)", text: "var(--color-watch)" },
+    "Düşük Riskli İnaktif": { bg: "var(--bg-dormant)", text: "var(--text-secondary)" },
+    "Sağlıklı Portföy": { bg: "var(--bg-healthy)", text: "var(--color-healthy)" }
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const label = sessionStorage.getItem('churnDetayLabel') || "Detay Listesi";
+    const dataString = sessionStorage.getItem('churnDetayList');
+    
+    document.getElementById('titleLabel').textContent = `${label}`;
+    
+    const badge = document.getElementById('segmentBadge');
+    badge.textContent = "AI Segmenti: " + label;
+    if (themeMap[label]) {
+      badge.style.backgroundColor = themeMap[label].bg;
+      badge.style.color = themeMap[label].text;
+    }
+
+    if (dataString) {
+      rawData = JSON.parse(dataString);
+      renderTable(rawData);
+    } else {
+      document.getElementById('customerTableBody').innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--text-muted);">Uyumlu veri seti bulunamadı.</td></tr>`;
+    }
+  });
+
+  function renderTable(data) {
+    const tbody = document.getElementById('customerTableBody');
+    tbody.innerHTML = "";
+
+    data.forEach(item => {
+      const tr = document.createElement('tr');
+      
+      tr.innerHTML = `
+        <td class="cell-id">${item.id}</td>
+        <td class="cell-name">${item.ad}</td>
+        <td>${item.tenure}</td>
+        <td>${item.sube}</td>
+        <td class="cell-ai-score" style="color: ${getProbColor(item.prob)};">
+          %${item.prob}
+        </td>
+        <td>
+          <span class="ai-driver-tag">⚡ ${item.reason}</span>
+        </td>
+        <td class="cell-number">${new Intl.NumberFormat('tr-TR').format(item.clv)} ₺</td>
+        <td>
+          <span class="status-pill" style="background:${getStatusBg(item.durum)}; color:${getStatusText(item.durum)};">
+            ${item.durum}
+          </span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function getProbColor(prob) {
+    if (prob >= 75) return 'var(--color-crit)';
+    if (prob >= 50) return 'var(--color-watch)';
+    return 'var(--color-healthy)';
+  }
+
+  function getStatusBg(status) {
+    if (status === 'Boşta') return 'var(--bg-crit)';
+    if (status === 'Çözüldü') return 'var(--bg-healthy)';
+    return 'var(--bg-watch)';
+  }
+
+  function getStatusText(status) {
+    if (status === 'Boşta') return 'var(--color-crit)';
+    if (status === 'Çözüldü') return 'var(--color-healthy)';
+    return 'var(--color-watch)';
+  }
+
+  function filterTable() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = rawData.filter(item => 
+      item.ad.toLowerCase().includes(q) || 
+      item.id.toLowerCase().includes(q) ||
+      item.reason.toLowerCase().includes(q)
+    );
+    renderTable(filtered);
+  }
+</script>
+</body>
+</html>
