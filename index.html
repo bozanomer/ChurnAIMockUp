@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI-Powered Churn Risk Haritası</title>
+<style>
+  :root{
+    --text-primary:#16181C;
+    --text-secondary:#6B6B6B;
+    --text-muted:#9A9A9A;
+    --text-danger:#791F1F;
+    --text-warning:#633806;
+    --text-success:#085041;
+    --bg-danger:#FCEBEB;
+    --bg-warning:#FAEEDA;
+    --bg-success:#E1F5EE;
+    --surface-1:#F1EFE8;
+    --border-strong:#D8D4C8;
+    --radius:10px;
+    --page-bg:#FFFFFF;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .header-row {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+  }
+
+  .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    color: var(--text-primary);
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    background: var(--text-primary);
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  @media (max-width: 768px) {
+    .header-row {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+  }
+
+  body{
+    background:var(--page-bg);
+    color:var(--text-primary);
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .wrap{
+    width: 100%;
+    max-width: 900px;
+    height: 100vh;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  h1{
+    font-size:18px;
+    font-weight:700;
+    margin:0;
+    text-align:center;
+    flex: 1;
+  }
+
+  .filter-row {
+    display:flex; 
+    gap:16px; 
+    flex-wrap:wrap; 
+    margin-top:12px; 
+    margin-bottom:12px;
+    flex-shrink: 0;
+  }
+
+  .kpi-container {
+    display:grid; 
+    grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); 
+    gap:10px; 
+    margin-bottom:12px;
+    flex-shrink: 0;
+  }
+
+  .kpi-card{
+    position:relative;
+    border-radius:var(--radius);
+    padding:0.75rem;
+    padding-right:2.2rem;
+  }
+
+  .kpi-amount{
+    font-size:11px;
+    margin:2px 0 0;
+  }
+
+  .kpi-trend{
+    font-size:10px;
+    margin:4px 0 0;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+
+  .kpi-action{
+    font-size:11px;
+    font-weight:700;
+    margin:4px 0 0;
+    padding-top:4px;
+    border-top:1px solid rgba(0,0,0,0.08);
+  }
+
+  .detail-btn{
+    position:absolute;
+    top:8px;
+    right:8px;
+    width:20px;
+    height:20px;
+    border-radius:4px;
+    border:none;
+    background:rgba(255,255,255,0.6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .detail-btn:hover{
+    background:rgba(255,255,255,0.95);
+  }
+  .detail-btn svg{
+    width:12px;
+    height:12px;
+  }
+
+  .chart-container {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #plot {
+    max-height: 100%;
+    max-width: 100%;
+    display: block;
+  }
+
+  .footer-text {
+    font-size:10px; 
+    color:var(--text-muted); 
+    margin-top:8px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header-row">
+    <div style="width: 120px; display: @media (max-width: 768px) {none};"></div>
+    <h1>AI-Powered Churn Risk Haritası</h1>
+    
+    <!-- GitHub Pages Uyumlu Dinamik Logo -->
+    <div class="logo-container">
+      <span class="logo-icon">dS</span>
+      <span>dataSpecta</span>
+    </div>
+  </div>
+
+  <div class="filter-row">  
+    <div style="flex:1; min-width:200px;">
+      <label style="font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+        <span>Yapay Zeka Churn Eşiği (Probability)</span>
+        <span style="display:flex; align-items:center; gap:4px;">
+          <input type="number" id="probInput" value="65" min="10" max="95" step="5"
+            style="width:54px; font-weight:700; text-align:right; border:1px solid var(--border-strong); border-radius:6px; padding:2px 4px; font-size:11px; color:var(--text-primary); font-family:inherit;" />
+          <span style="font-weight:700; color:var(--text-primary);">%</span>
+        </span>
+      </label>
+      <input type="range" id="probSlider" min="10" max="95" step="5" value="65" style="width:100%; margin: 0;" />
+    </div>
+    <div style="flex:1; min-width:200px;">
+      <label style="font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+        <span>Yıllık Değer (LTV) Sınırı</span>
+        <span style="display:flex; align-items:center; gap:4px;">
+          <input type="number" id="clvInput" value="350000" min="0" max="750000" step="10000"
+            style="width:80px; font-weight:700; text-align:right; border:1px solid var(--border-strong); border-radius:6px; padding:2px 4px; font-size:11px; color:var(--text-primary); font-family:inherit;" />
+          <span style="font-weight:700; color:var(--text-primary);">₺</span>
+        </span>
+      </label>
+      <input type="range" id="clvSlider" min="0" max="750000" step="10000" value="350000" style="width:100%; margin: 0;" />
+    </div>
+  </div>
+
+  <div class="kpi-container">
+    <div class="kpi-card" style="background:var(--bg-danger);">
+      <button class="detail-btn" onclick="openDetail('crit','Kritik Kayıp Riski')" title="Detayları listele">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </button>
+      <p style="font-size:11px; font-weight:800; margin:0 0 2px; color:var(--text-danger); text-transform:uppercase;">Kritik Risk</p>
+      <p style="font-size:20px; font-weight:700; margin:0; color:var(--text-danger);" id="critCount">-</p>
+      <p class="kpi-amount" style="color:var(--text-danger);" id="critShare">-</p>
+      <p class="kpi-trend" style="color:var(--text-danger);" id="critTrend">-</p>
+      <p class="kpi-action" style="color:var(--text-danger);" id="critAction">-</p>
+    </div>
+    <div class="kpi-card" style="background:var(--bg-warning);">
+      <button class="detail-btn" onclick="openDetail('watch','Yüksek Değer - Takipte')" title="Detayları listele">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </button>
+      <p style="font-size:11px; font-weight:800; margin:0 0 2px; color:var(--text-warning); text-transform:uppercase;">Değerli / Stabil</p>
+      <p style="font-size:20px; font-weight:700; margin:0; color:var(--text-warning);" id="watchCount">-</p>
+      <p class="kpi-amount" style="color:var(--text-warning);" id="watchShare">-</p>
+      <p class="kpi-trend" style="color:var(--text-warning);" id="watchTrend">-</p>
+    </div>
+    <div class="kpi-card" style="background:var(--surface-1);">
+      <button class="detail-btn" onclick="openDetail('dormant','Düşük Riskli İnaktif')" title="Detayları listele">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </button>
+      <p style="font-size:11px; font-weight:800; margin:0 0 2px; color:var(--text-secondary); text-transform:uppercase;">Doğal Kayıp</p>
+      <p style="font-size:20px; font-weight:700; margin:0;" id="dormantCount">-</p>
+      <p class="kpi-amount" style="color:var(--text-secondary);" id="dormantShare">-</p>
+      <p class="kpi-trend" style="color:var(--text-secondary);" id="dormantTrend">-</p>
+    </div>
+    <div class="kpi-card" style="background:var(--bg-success);">
+      <button class="detail-btn" onclick="openDetail('healthy','Sağlıklı Portföy')" title="Detayları listele">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+      </button>
+      <p style="font-size:11px; font-weight:800; margin:0 0 2px; color:var(--text-success); text-transform:uppercase;">Güvenli Alan</p>
+      <p style="font-size:20px; font-weight:700; margin:0; color:var(--text-success);" id="healthyCount">-</p>
+      <p class="kpi-amount" style="color:var(--text-success);" id="healthyShare">-</p>
+      <p class="kpi-trend" style="color:var(--text-success);" id="healthyTrend">-</p>
+    </div>
+  </div>
+
+  <div class="chart-container">
+    <svg id="plot" viewBox="0 0 700 430" style="overflow:visible;">
+      <line x1="60" y1="20" x2="60" y2="360" stroke="var(--border-strong)" stroke-width="1"/>
+      <line x1="60" y1="360" x2="680" y2="360" stroke="var(--border-strong)" stroke-width="1"/>
+      <line id="vLine" x1="60" y1="20" x2="60" y2="360" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4 3"/>
+      <line id="hLine" x1="60" y1="360" x2="680" y2="360" stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="4 3"/>
+      
+      <g id="points"></g>
+
+      <!-- Çeyrek Başlıkları -->
+      <rect x="130" y="2" width="170" height="20" fill="var(--page-bg)" rx="4" opacity="0.9"/>
+      <text x="215" y="16" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-warning)">Değerli / Risk Altında</text>
+      
+      <rect x="440" y="2" width="170" height="20" fill="var(--page-bg)" rx="4" opacity="0.9"/>
+      <text x="525" y="16" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-danger)">Kritik Risk / Müdahale Lazım</text>
+      
+      <rect x="130" y="365" width="170" height="20" fill="var(--page-bg)" rx="4" opacity="0.9"/>
+      <text x="215" y="380" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-success)">Sağlıklı Segment</text>
+      
+      <rect x="440" y="365" width="170" height="20" fill="var(--page-bg)" rx="4" opacity="0.9"/>
+      <text x="525" y="380" text-anchor="middle" font-size="11" font-weight="800" fill="var(--text-secondary)">Doğal Kayıp / Pasif</text>
+      
+      <!-- Eksen Etiketleri -->
+      <text x="370" y="415" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text-secondary)">Yapay Zeka Churn Olasılığı (Churn Probability %)</text>
+      <text x="20" y="190" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text-secondary)" transform="rotate(-90 20 190)">Yaşam Boyu Değer (LTV ₺)</text>
+    </svg>
+  </div>
+
+  <p class="footer-text">dataSpecta Predictive Engine · Mockup v2.0 (AI integrated dataset)</p>
+
+</div>
+
+<script>
+(function(){
+  var W = 700, H = 420, padL = 60, padB = 60, padT = 20, padR = 20;
+  var xMax = 100, yMax = 750000;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+
+  function xPix(v){ return padL + (v/xMax)*plotW; }
+  function yPix(v){ return (H - padB) - (v/yMax)*plotH; }
+
+  var firstNames = ["Ahmet","Mehmet","Ayşe","Fatma","Mustafa","Emine","Ali","Hatice","Hüseyin","Zeynep","İbrahim","Elif","Hasan","Meryem","İsmail","Özlem","Murat","Sevgi","Kemal","Derya"];
+  var lastNames = ["Yılmaz","Kaya","Demir","Şahin","Çelik","Yıldız","Yıldırım","Öztürk","Aydın","Özdemir"];
+  var branches = ["İstanbul","Ankara","İzmir","Bursa","Antalya"];
+  var reasons = ["Destek biletlerinin geç çözülmesi", "Yüksek fiyatlama şikayeti", "Rakip firma etkileşimi", "Düşük platform kullanımı", "Son fatura itirazı", "Müşteri temsilcisi değişikliği"];
+
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  var points = [];
+  var n = 180;
+  for (var i=0;i<n;i++){
+    var prob = Math.pow(Math.random(), 1.2) * 100;
+    var ltv = Math.min(yMax, 10000 + Math.random()*(yMax*0.9));
+    var size = 4 + Math.random()*4;
+
+    var prevProb = Math.max(0, Math.min(100, prob + (Math.random() - 0.5) * 15));
+    var prevLtv = ltv * (0.95 + Math.random()*0.1);
+
+    var fn = pick(firstNames), ln = pick(lastNames);
+    var tenure = Math.floor(50 + Math.random()*1200) + " gün";
+
+    points.push({
+      prob: prob, ltv: ltv, r: size, prevProb: prevProb, prevLtv: prevLtv,
+      id: 'ID-' + (2400+i),
+      ad: fn + ' ' + ln,
+      tenure: tenure,
+      sube: pick(branches),
+      status: pick(['Boşta','Öncelikli Aranacak','Teklif Aşamasında','Çözüldü']),
+      reason: pick(reasons)
+    });
+  }
+
+  var svgPoints = document.getElementById('points');
+  points.forEach(function(p){
+    var c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx', xPix(p.prob));
+    c.setAttribute('cy', yPix(p.ltv));
+    c.setAttribute('r', p.r);
+    c.setAttribute('fill-opacity', '0.75');
+    svgPoints.appendChild(c);
+    p.el = c;
+  });
+
+  var colors = {
+    crit: '#E24B4A',
+    watch: '#EF9F27',
+    dormant: '#B8B4A4',
+    healthy: '#1D9E75'
+  };
+
+  var probSlider = document.getElementById('probSlider');
+  var clvSlider = document.getElementById('clvSlider');
+  var probInput = document.getElementById('probInput');
+  var clvInput = document.getElementById('clvInput');
+  var vLine = document.getElementById('vLine');
+  var hLine = document.getElementById('hLine');
+
+  var probT = parseInt(probSlider.value, 10);
+  var clvT = parseInt(clvSlider.value, 10);
+
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+  function formatCurrencyShort(v){
+    if (v >= 1000000) return (v/1000000).toFixed(2).replace('.', ',') + ' M ₺';
+    if (v >= 1000) return Math.round(v/1000) + ' bin ₺';
+    return Math.round(v) + ' ₺';
+  }
+
+  function update(){
+    probInput.value = probT;
+    clvInput.value = clvT;
+    probSlider.value = probT;
+    clvSlider.value = clvT;
+
+    var xPixT = xPix(probT);
+    var yPixT = yPix(clvT);
+    vLine.setAttribute('x1', xPixT); vLine.setAttribute('x2', xPixT);
+    hLine.setAttribute('y1', yPixT); hLine.setAttribute('y2', yPixT);
+
+    var counts = {crit:0, watch:0, dormant:0, healthy:0};
+    var clvSums = {crit:0, watch:0, dormant:0, healthy:0};
+    var prevCounts = {crit:0, watch:0, dormant:0, healthy:0};
+    var unassignedCrit = 0;
+    var totalClv = 0;
+
+    function categorize(prob, ltv){
+      var highProb = prob >= probT;
+      var highLtv = ltv >= clvT;
+      if (highProb && highLtv) return 'crit';
+      if (!highProb && highLtv) return 'watch';
+      if (highProb && !highLtv) return 'dormant';
+      return 'healthy';
+    }
+
+    points.forEach(function(p){
+      var key = categorize(p.prob, p.ltv);
+      var prevKey = categorize(p.prevProb, p.prevLtv);
+      p.cat = key;
+      p.el.setAttribute('fill', colors[key]);
+      counts[key]++;
+      clvSums[key] += p.ltv;
+      totalClv += p.ltv;
+      prevCounts[prevKey]++;
+      if (key === 'crit' && p.status === 'Boşta') unassignedCrit++;
+    });
+
+    function pct(v){ return totalClv ? (100*v/totalClv).toFixed(1)+'%' : '0%'; }
+
+    function trendHtml(key, goodDirection){
+      var delta = counts[key] - prevCounts[key];
+      if (delta === 0) return 'Değişim yok';
+      var up = delta > 0;
+      var isGood = up ? goodDirection === 'up' : goodDirection === 'down';
+      return (up ? '▲ ' : '▼ ') + Math.abs(delta) + (isGood ? ' (Pozitif trend)' : ' (Artış yönlü risk)');
+    }
+
+    document.getElementById('critCount').textContent = counts.crit + " Müşteri";
+    document.getElementById('critShare').textContent = formatCurrencyShort(clvSums.crit) + " LTV (" + pct(clvSums.crit) + ")";
+    document.getElementById('critTrend').textContent = trendHtml('crit', 'down');
+    document.getElementById('critAction').textContent = unassignedCrit + ' boşta/aksiyonsuz';
+
+    document.getElementById('watchCount').textContent = counts.watch + " Müşteri";
+    document.getElementById('watchShare').textContent = formatCurrencyShort(clvSums.watch) + " LTV (" + pct(clvSums.watch) + ")";
+    document.getElementById('watchTrend').textContent = trendHtml('watch', 'down');
+
+    document.getElementById('dormantCount').textContent = counts.dormant + " Müşteri";
+    document.getElementById('dormantShare').textContent = formatCurrencyShort(clvSums.dormant) + " LTV (" + pct(clvSums.dormant) + ")";
+    document.getElementById('dormantTrend').textContent = trendHtml('dormant', 'down');
+
+    document.getElementById('healthyCount').textContent = counts.healthy + " Müşteri";
+    document.getElementById('healthyShare').textContent = formatCurrencyShort(clvSums.healthy) + " LTV (" + pct(clvSums.healthy) + ")";
+    document.getElementById('healthyTrend').textContent = trendHtml('healthy', 'up');
+  }
+
+  probSlider.addEventListener('input', function(){ probT = parseInt(probSlider.value, 10); update(); });
+  clvSlider.addEventListener('input', function(){ clvT = parseInt(clvSlider.value, 10); update(); });
+  probInput.addEventListener('input', function(){ var v = parseInt(probInput.value, 10); if(!isNaN(v)){ probT = clamp(v, 0, xMax); update(); } });
+  clvInput.addEventListener('input', function(){ var v = parseInt(clvInput.value, 10); if(!isNaN(v)){ clvT = clamp(v, 0, yMax); update(); } });
+
+  // GITHUB PAGES İÇİN GÖRECELİ YOL (RELATIVE PATH) DÜZELTMESİ
+  window.openDetail = function(catKey, label){
+    var filtered = points.filter(function(p){ return p.cat === catKey; }).map(function(p){
+      return {
+        id: p.id, ad: p.ad, tenure: p.tenure, sube: p.sube, durum: p.status,
+        clv: Math.round(p.ltv), prob: Math.round(p.prob), reason: p.reason
+      };
+    });
+    sessionStorage.setItem('churnDetayList', JSON.stringify(filtered));
+    sessionStorage.setItem('churnDetayLabel', label);
+    window.open('detay.html', '_blank');
+  };
+
+  update();
+})();
+</script>
+</body>
+</html>
